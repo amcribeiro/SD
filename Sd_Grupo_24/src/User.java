@@ -16,11 +16,11 @@ public class User {
 
     }
 
-    public User(int level, String... values) {
-        this.name = values[0];
-        this.email = values[1];
-        this.password = values[2];
-        this.level = level;
+    public User(String... userFields) {
+        this.name = userFields[0];
+        this.email = userFields[1];
+        this.password = userFields[2];
+        this.level = Integer.parseInt(userFields[3]);
     }
 
     public String getName() {
