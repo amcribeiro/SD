@@ -92,4 +92,8 @@ public class User {
                 + level + " \n}";
     }
 
+    public String toCSV() {
+        return String.join(",", name, email, password, String.valueOf(level));
+    }
+
 }
