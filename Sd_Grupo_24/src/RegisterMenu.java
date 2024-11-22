@@ -4,7 +4,7 @@ import java.io.PrintWriter;
 
 public class RegisterMenu {
 
-    public User RequestRegistrationInformation(PrintWriter out, BufferedReader in) throws IOException{
+    public User getRegisterData(PrintWriter out, BufferedReader in) throws IOException{
 
         out.println("----- Register -----");
 
@@ -20,18 +20,13 @@ public class RegisterMenu {
 
         do {
 
-            out.println("Choose the level:");
-            out.println("1. High");
-            out.println("2. Medium");
-            out.println("3. Low");
-            int chooseLevel = Integer.parseInt(in.readLine());
-
             System.out.println("Choose a level:");
             System.out.println("1 - Low");
             System.out.println("2 - Medium");
             System.out.println("3 - High");
             System.out.print("Enter your choice: ");
 
+            int chooseLevel = Integer.parseInt(in.readLine());
 
             switch (chooseLevel) {
                 case 1:
@@ -51,9 +46,6 @@ public class RegisterMenu {
                     level = -1; // Mantém o loop até que uma escolha válida seja feita.
             }
         } while (level == -1);
-
-
-
 
         return new User(name, email, password, level);
 

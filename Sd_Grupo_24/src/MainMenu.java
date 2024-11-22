@@ -12,32 +12,40 @@ public class MainMenu {
             try {
                 choice = Integer.parseInt(in.readLine());
             } catch (NumberFormatException | IOException e) {
-                out.println("Por favor, insira um número valido.");
+                out.println("Choose a valid option.");
                 continue;
             }
+
             switch (choice) {
                 case 1:
                     RegisterMenu registerMenu = new RegisterMenu();
                     User newUser = new User(null, null, null, 0);
+
                     try {
-                        newUser = registerMenu.RequestRegistrationInformation(out, in);
+                        newUser = registerMenu.getRegisterData(out, in);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
+
                     if (newUser != null) {
                         localDatabase.addNewUser(newUser);
                     }
+
                     out.println("User registered successfully.");
                     break;
+
                 case 2:
                     LoginMenu loginMenu = new LoginMenu();
                     Login login = new Login(null, null);
+
                     try {
                         login = loginMenu.getLoginInfo(out, in);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
+
                     User verifyLogin = localDatabase.verifyLoginData(login);
+
                     if (verifyLogin != null) {
                         out.println("Login successful.");
                         out.println("Logged in as " + verifyLogin.getName() + " | level: " + verifyLogin.getLevel());
@@ -45,14 +53,15 @@ public class MainMenu {
                         //TODO: Implementar menu de mensagens
                         //MenuMessages menuMessages = new MenuMessages(out, in);
                         //menuMessages.sendMessageMenu(logincheck);
-
                     } else {
                         out.println("Login failed.");
                     }
+
                 case 3:
                     out.println("Exiting...");
                     System.exit(0);
                     break;
+
                 default:
                     out.println("Enter valid option.");
                     break;
@@ -62,7 +71,6 @@ public class MainMenu {
         scanner.close();
 
     }
-
 
     private static void displayMainMenu(PrintWriter out) {
         out.println("---- Menu Emergency Operations ----");
