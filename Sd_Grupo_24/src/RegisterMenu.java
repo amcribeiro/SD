@@ -4,7 +4,7 @@ import java.io.PrintWriter;
 
 public class RegisterMenu {
 
-    public User solicitarInformacoesRegistro(PrintWriter out, BufferedReader in) throws IOException{
+    public User RequestRegistrationInformation(PrintWriter out, BufferedReader in) throws IOException{
 
         out.println("----- Register -----");
 
