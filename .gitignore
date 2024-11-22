@@ -23,5 +23,8 @@
 hs_err_pid*
 replay_pid*
 
-#IntelIJ
-.idea
+# IntelliJ IDEA
+.idea/*
+!.idea/codeStyles/
+!.idea/inspectionProfiles/
+*.iml
