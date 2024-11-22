@@ -9,7 +9,7 @@ import java.io.PrintWriter;
 public class LocalDatabase {
     private static final String PATH = "database.csv";
 
-    private static final String CABECALHO = "Nome;Email;Password;Level";
+    private static final String CABECALHO = "Name;Email;Password;Level";
 
 
     private List<User> users = new ArrayList<>();
@@ -33,11 +33,11 @@ public class LocalDatabase {
 
         try (BufferedReader fileReader = new BufferedReader(new FileReader(PATH))) {
             String currentLine;
-            boolean skipHeader = true;
+            boolean skipCabecalho = true;
 
             while ((currentLine = fileReader.readLine()) != null) {
-                if (skipHeader) {
-                    skipHeader = false; // Ignorar a primeira linha (cabeçalho)
+                if (skipCabecalho) {
+                    skipCabecalho = false; // Ignorar a primeira linha (cabeçalho)
                     continue;
                 }
 
@@ -67,6 +67,7 @@ public class LocalDatabase {
         }
 
         users.add(user);
+        saveUsersToDatabase();
 
         return true;
     }

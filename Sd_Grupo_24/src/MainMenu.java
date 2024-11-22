@@ -1,10 +1,11 @@
 import java.util.Scanner;
 import java.io.*;
 import java.net.*;
+
 public class MainMenu {
 
 
-    public void Menu(PrintWriter out,BufferedReader in, Scanner scanner) {
+    public void Menu(LocalDatabase localDatabase, PrintWriter out, BufferedReader in, Scanner scanner) {
         int choice = 0;
         do {
             displayMainMenu(out);
@@ -14,7 +15,7 @@ public class MainMenu {
                 out.println("Por favor, insira um número valido.");
                 continue;
             }
-            switch (choice){
+            switch (choice) {
                 case 1:
                     RegisterMenu registerMenu = new RegisterMenu();
                     User newUser = new User(null, null, null, 0);
@@ -23,24 +24,44 @@ public class MainMenu {
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
+                    if (newUser != null) {
+                        localDatabase.addNewUser(newUser);
+                    }
+                    out.println("User registered successfully.");
+                    break;
+                case 2:
+                    LoginMenu loginMenu = new LoginMenu();
+                    Login login = new Login(null, null);
+                    try {
+                        login = loginMenu.getLoginInfo(out, in);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    User verifyLogin = localDatabase.verifyLoginData(login);
+                    if (verifyLogin != null) {
+                        out.println("Login successful.");
+                        out.println("Logged in as " + verifyLogin.getName() + " | level: " + verifyLogin.getLevel());
+
+                        //TODO: Implementar menu de mensagens
+                        //MenuMessages menuMessages = new MenuMessages(out, in);
+                        //menuMessages.sendMessageMenu(logincheck);
+
+                    } else {
+                        out.println("Login failed.");
+                    }
+                case 3:
+                    out.println("Exiting...");
+                    System.exit(0);
+                    break;
+                default:
+                    out.println("Enter valid option.");
+                    break;
             }
-
-
-
-
-
-
-
-
-
 
         } while (choice != 3);
         scanner.close();
 
     }
-
-
-
 
 
     private static void displayMainMenu(PrintWriter out) {
