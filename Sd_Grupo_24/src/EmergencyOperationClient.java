@@ -19,12 +19,6 @@ public class EmergencyOperationClient {
 
         int portNumber = Integer.parseInt(args[1]);
 
-        System.out.println(
-                "\n================================================\n" +
-                        "Caso querias sair do servidor ou entrar num grupo de chat, " +
-                        "escreve bye!\n" +
-                        "=================================================\n");
-
         try (Socket kkSocket = new Socket(hostName, portNumber);
 
              PrintWriter out = new PrintWriter(kkSocket.getOutputStream(), true);
@@ -40,7 +34,7 @@ public class EmergencyOperationClient {
                     while ((serverResponse = in.readLine()) != null) {
                         System.out.println("Server: " + serverResponse);
 
-                        if (serverResponse.equalsIgnoreCase("Login bem-sucedido!")) {
+                        if (serverResponse.equalsIgnoreCase("Logged in successfully")) {
                             Thread broadcast = new Thread(new BroadcastReceiver());
                             broadcast.start();
                         }

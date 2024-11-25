@@ -48,7 +48,7 @@ public class MainMenu {
 
                     if (verifyLogin != null) {
                         out.println("Login successful.");
-                        out.println("Logged in as " + verifyLogin.getName() + " | level: " + verifyLogin.getLevel());
+                        out.println("Logged in as " + verifyLogin.getName() + " | Level: " + verifyLogin.getLevel());
 
                         //TODO: Implementar menu de mensagens
                         //MenuMessages menuMessages = new MenuMessages(out, in);

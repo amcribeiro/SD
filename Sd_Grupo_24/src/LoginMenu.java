@@ -4,12 +4,12 @@ import java.io.PrintWriter;
 
 public class LoginMenu {
     public Login getLoginInfo(PrintWriter out, BufferedReader in) throws IOException {
-        out.println("----- Login -----\"");
+        out.println("----- Login -----\n");
 
-        out.print("Email: ");
+        out.println("Email: ");
         String email = in.readLine();
 
-        out.print("Password: ");
+        out.println("Password: ");
         String password = in.readLine();
 
         return new Login(email, password);
