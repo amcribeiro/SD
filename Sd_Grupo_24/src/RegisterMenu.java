@@ -20,29 +20,29 @@ public class RegisterMenu {
 
         do {
 
-            System.out.println("Choose a level:");
-            System.out.println("1 - Low");
-            System.out.println("2 - Medium");
-            System.out.println("3 - High");
-            System.out.print("Enter your choice: ");
+            out.println("Choose a level:");
+            out.println("1 - Low");
+            out.println("2 - Medium");
+            out.println("3 - High");
+            out.print("Enter your choice: ");
 
             int chooseLevel = Integer.parseInt(in.readLine());
 
             switch (chooseLevel) {
                 case 1:
                     level = 1;
-                    System.out.println("Level set to Low.");
+                    out.println("Level set to Low.");
                     break;
                 case 2:
                     level = 2;
-                    System.out.println("Level set to Medium.");
+                    out.println("Level set to Medium.");
                     break;
                 case 3:
                     level = 3;
-                    System.out.println("Level set to High.");
+                    out.println("Level set to High.");
                     break;
                 default:
-                    System.out.println("Invalid choice, please try again.");
+                    out.println("Invalid choice, please try again.");
                     level = -1; // Mantém o loop até que uma escolha válida seja feita.
             }
         } while (level == -1);
