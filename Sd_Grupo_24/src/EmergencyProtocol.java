@@ -1,7 +1,6 @@
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class EmergencyProtocol {
 
@@ -49,13 +48,13 @@ public class EmergencyProtocol {
         return output;
     }
 
-    private boolean isCommandValid(String command) {
+    private boolean isCommandValid(String command) throws IOException {
 
         for(String validCommand : validCommandList){
             if (command.equalsIgnoreCase(validCommand)) {
                 switch (command) {
                     case "PRIVATE_MESSAGE":
-                        out.println("Private Message Format: PRIVATE <message> - <recipient>");
+                        out.println("Private Message Format Is: PRIVATE <message> - <recipient>");
                         return false;
                     case "CHAT":
                         String groupAddress;
@@ -70,28 +69,27 @@ public class EmergencyProtocol {
                         getAllMessages();
                         return true;
                     case "REQUEST":
-                        out.println("Deves escrever uma instrucao depois de REQUEST!");
-                        out.println("EX: REQUEST Atacar Guantanamo");
+                        out.println("Request Format Is: REQUEST <message>");
                         return false;
                     case "APPROVE":
-                        if ("Admiral".equals(user.getmilitaryRank()) || "Lieutenant".equals(user.getmilitaryRank())) {
-                            if(listPendingApprovals()){
-                                int requestNum = Integer.parseInt(in.readLine());
-                                approveInstruction(requestNum);
+                        if (currentUser.getLevel() >= 1 && currentUser.getLevel() <= 3) {
+                            if(showPendingApprovalRequests()){
+                                int requestNumber = Integer.parseInt(in.readLine());
+                                approveRequest(requestNumber);
                             }
+
                             return true;
                         }
                         return false;
                     case "BROADCAST":
-                        if ("Admiral".equals(user.getmilitaryRank()) || "Lieutenant".equals(user.getmilitaryRank())) {
-                            out.println("Deves escrever uma instrucao depois de BROADCAST!");
-                            out.println("EX: BROADCAST Atacar Guantanamo!");
+                        if (currentUser.getLevel() >= 1 || currentUser.getLevel() <= 3) {
+                            out.println("Broadcast Format is: BROADCAST <message>");
                             return true;
                         }
                         return false;
                     case "MULTICAST":
-                        if ("Admiral".equals(user.getmilitaryRank()) || "Lieutenant".equals(user.getmilitaryRank())) {
-                            SendMulticastMessage();
+                        if (currentUser.getLevel() >= 1 || currentUser.getLevel() <= 2) {
+                            SendMessageUsingMulticast();
                             return true;
                         }
                         return false;
@@ -103,26 +101,140 @@ public class EmergencyProtocol {
         }
     }
 
+    private void SendMessageUsingMulticast() {
+        String group_multicast = "226.0.0.0";
+        int port_multicast = 4000;
+        try {
+            int group_address = chooseMulticastGroupByRank();
+            String type = "";
+            if(group_address == 1){
+                group_multicast = ServerConfig.IP_LOW_LEVEL;
+                port_multicast = ServerConfig.PORT_LOW_LEVEL;
+                type = "Low Level";
+            }else if(group_address == 2){
+                group_multicast = ServerConfig.IP_MEDIUM_LEVEL;
+                port_multicast = ServerConfig.PORT_MEDIUM_LEVEL;
+                type = "Medium Level";
+            }else if(group_address == 3){
+                group_multicast = ServerConfig.IP_HIGH_LEVEL;
+                port_multicast = ServerConfig.PORT_HIGH_LEVEL;
+                type = "High Level";
+            }
+
+            out.println("Type the request to be sent: ");
+
+            String instruction = in.readLine();
+            new Thread(new MulticastSender(user, instruction, group_multicast, port_multicast)).start();
+            requestMultiCastInstruction("MULTICAST_"+type, instruction);
+
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void approveRequest(int requestNumber) {
+        List<String> lines = new ArrayList<>();
+
+        try (BufferedReader reader = new BufferedReader(new FileReader("requests.csv"))) {
+            String line;
+            int count = 1;
+
+            while ((line = reader.readLine()) != null) {
+                String[] items = line.split(",");
+
+                if (items.length == 3 && items[2].equalsIgnoreCase("PENDING")) {
+                    if (count == requestNumber) {
+                        items[2] = "APPROVED";
+                    }
+                    count++;
+                }
+
+                lines.add(String.join(",", items));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        try (PrintWriter writer = new PrintWriter(new FileWriter("requests.csv"))) {
+            for (String line : lines) {
+                writer.println(line);
+            }
+            out.println("Approved the request.");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private boolean showPendingApprovalRequests() {
+        boolean hasPendingApprovals = false;
+
+        try (BufferedReader reader = new BufferedReader(new FileReader("requests.csv"))) {
+            String line;
+            int count = 1;
+
+            out.println("----- Requests Pending Approval -----");
+
+            while ((line = reader.readLine()) != null) {
+                String[] items = line.split(",");
+
+                if (items.length == 3 && items[2].equalsIgnoreCase("PENDING")) {
+                    out.println(count + ". " + line);
+                    count++;
+                    hasPendingApprovals = true;
+                }
+            }
+
+            if (!hasPendingApprovals) {
+                out.println("\n ----- No Requests Left To Approve ----- \n");
+                return false;
+            }
+
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     private void getAllMessages() {
-        boolean hasPendingMessages = false;
+        boolean hasUnreadMessages = false;
 
         try (BufferedReader reader = new BufferedReader(new FileReader("messages.csv"))) {
             String line;
 
-            out.println(" === Mensanges guardadas ===");
+            out.println("----- Unread Messages -----");
 
             while ((line = reader.readLine()) != null) {
-                if (isMessageForUser(line)) {
+                if (isMessageReceiverCurrentUser(line)) {
                     out.println(line);
-                    hasPendingInstructions = true;
+                    hasUnreadMessages = true;
                 }
             }
-            if (!hasPendingInstructions) {
-                out.println("\n -- Não existem mensagens para ti! -- \n");
+            if (!hasUnreadMessages) {
+                out.println("\n ---- Current user doesnt have any unread messages! ----- \n");
             }
         } catch (IOException e) {
-            System.err.println("Erro ao verificar mensagens: " + e.getMessage());
+            System.err.println("Error checking unread messages: " + e.getMessage());
         }
+    }
+
+    private boolean isMessageReceiverCurrentUser(String line) {
+        String[] items = line.split(" - ");
+
+        if (items.length == 2) {
+            String sentTo = items[1].trim();
+
+            if (sentTo.startsWith(": ")) {
+                sentTo = sentTo.substring(2);
+            }
+
+            String receiver = sentTo.split(" : ")[0];
+
+            return receiver.equals(currentUser.getName()); //Veriffica se o user autal e qwuem recebe a mensagem
+        }
+
+        return false;
     }
 
     private String chooseGroupAccordingToLevel() throws IOException {
