@@ -12,6 +12,13 @@ public class EmergencyProtocol {
 
     private int currentState = WAITING;
 
+    private static final int ANOTHER = 2;
+
+    private static final int NUMCOMMANDS = 5;
+
+    private int command = 0;
+
+
     public EmergencyProtocol(PrintWriter out, BufferedReader in) {
         this.out = out;
         this.in = in;
@@ -33,7 +40,7 @@ public class EmergencyProtocol {
         currentUser = user;
     }
 
-    public String processInput(String input) {
+    public String processInput(String input) throws IOException {
         String output = null;
 
         if (currentState == WAITING){
@@ -41,7 +48,24 @@ public class EmergencyProtocol {
             currentState = SENTCOMMAND;
         } else if (currentState == SENTCOMMAND){
             if(isCommandValid(input)){
-
+                output = "Executing command: " + input + ". Want to type another command? (y/n)";
+                currentState = ANOTHER;
+            } else if (input.equalsIgnoreCase("Logout")) {
+                return "Logout";
+            } else {
+                output = "Invalid command! Enter a valid command from the commands list!";
+            }
+        } else if (currentState == ANOTHER) {
+            if (input.equalsIgnoreCase("y")) {
+                output = "Enter another command.";
+                if (command == (NUMCOMMANDS - 1))
+                    command = 0;
+                else
+                    command++;
+                currentState = SENTCOMMAND;
+            } else {
+                output = "Bye, " + currentUser.getName() + ".";
+                currentState = WAITING;
             }
         }
 
@@ -89,24 +113,25 @@ public class EmergencyProtocol {
                         return false;
                     case "MULTICAST":
                         if (currentUser.getLevel() >= 1 || currentUser.getLevel() <= 2) {
-                            SendMessageUsingMulticast();
+                            mutlicastMessage();
                             return true;
                         }
                         return false;
                     default:
                         break;
                 }
-
             }
         }
+        return false;
     }
 
-    private void SendMessageUsingMulticast() {
+    private void mutlicastMessage() {
         String group_multicast = "226.0.0.0";
         int port_multicast = 4000;
         try {
-            int group_address = chooseMulticastGroupByRank();
+            int group_address = chooseMulticastGroupByLevelOfUser();
             String type = "";
+
             if(group_address == 1){
                 group_multicast = ServerConfig.IP_LOW_LEVEL;
                 port_multicast = ServerConfig.PORT_LOW_LEVEL;
@@ -124,8 +149,8 @@ public class EmergencyProtocol {
             out.println("Type the request to be sent: ");
 
             String instruction = in.readLine();
-            new Thread(new MulticastSender(user, instruction, group_multicast, port_multicast)).start();
-            requestMultiCastInstruction("MULTICAST_"+type, instruction);
+            new Thread(new MulticastSender(currentUser, instruction, group_multicast, port_multicast)).start();
+            requestMultiCastRequest("MULTICAST_"+type, instruction);
 
 
         } catch (IOException e) {
@@ -197,6 +222,15 @@ public class EmergencyProtocol {
         }
     }
 
+    private void requestMultiCastRequest(String type, String instruction) {
+        try (PrintWriter writer = new PrintWriter(new FileWriter("requests.csv", true))) {
+            writer.println(currentUser.getName() + " | " + currentUser.getLevel() + "," + instruction + ", " + type);
+            out.println("Instruction Saved.");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     private void getAllMessages() {
         boolean hasUnreadMessages = false;
 
@@ -246,6 +280,40 @@ public class EmergencyProtocol {
         } while (!isGroupOptionValidForCurrentUserLevel(option));
 
         return chosenGroupAddress(option);
+    }
+
+    public int chooseMulticastGroupByLevelOfUser() throws IOException {
+        int chosenGroup;
+
+        do {
+            showAvailableGroups();
+            chosenGroup = Integer.parseInt(in.readLine());
+        } while (!isValidGroupChoiceForUserLevel(chosenGroup));
+
+        return chosenGroup;
+    }
+
+    public void showAvailableGroups() {
+        out.println("----- Groups -----");
+        out.println("1. Low Level Chat");
+
+        if (currentUser.getLevel() == 2) {
+            out.println("2. Medium Level Chat");
+        } else if (currentUser.getLevel() == 3) {
+            out.println("2. Medium Level Chat");
+            out.println("3. High Level Chat");
+        }
+    }
+
+    public boolean isValidGroupChoiceForUserLevel(int option) {
+        if (currentUser.getLevel() == 1) {
+            return option == 1;
+        } else if (currentUser.getLevel() == 2) {
+            return option >= 1 && option <= 2;
+        } else if (currentUser.getLevel() == 3) {
+            return option >= 1 && option <= 3;
+        }
+        return false;
     }
 
     private String chosenGroupAddress(int option) {

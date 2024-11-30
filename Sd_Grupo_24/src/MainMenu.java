@@ -50,9 +50,8 @@ public class MainMenu {
                         out.println("Login successful.");
                         out.println("Logged in as " + verifyLogin.getName() + " | Level: " + verifyLogin.getLevel());
 
-                        //TODO: Implementar menu de mensagens
-                        //MenuMessages menuMessages = new MenuMessages(out, in);
-                        //menuMessages.sendMessageMenu(logincheck);
+                        MessageMenu messageMenu = new MessageMenu(out, in);
+                        messageMenu.messagesMenu(verifyLogin);
                     } else {
                         out.println("Login failed.");
                     }

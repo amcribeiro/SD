@@ -1,4 +1,5 @@
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.PrintWriter;
 
 public class MessageMenu {
@@ -10,16 +11,40 @@ public class MessageMenu {
         this.in = in;
     }
 
-    public void messagesMenu(User user){
-        String input;
-        String output;
+    public void messagesMenu(User user) {
+        String inputLine, outputLine;
 
-        try{
-            EmergencyProtocol emergencyProtocol = new EmergencyProtocol(out, in);
+        try {
+            EmergencyProtocol emergencyProtocol = new EmergencyProtocol(out,in);
             emergencyProtocol.setUser(user);
 
-            output = emergencyProtocol.processInput(null);
-            out.println(output);
+            outputLine = emergencyProtocol.processInput(null);
+            out.println(outputLine);
+
+
+            while ((inputLine = in.readLine()) != null) {
+                outputLine = emergencyProtocol.processInput(inputLine);
+
+                out.println(outputLine);
+
+                if (outputLine.equals("Bye.")) {
+                    break;
+                }
+                if (outputLine.equals("Logout")) {
+
+                    try {
+                        in.close();
+                        out.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    break;
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("Exception caught when trying to listen on port or listening for a connection");
+            System.out.println(e.getMessage());
         }
     }
 }
