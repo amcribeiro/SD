@@ -19,6 +19,7 @@ public class BroadcastReceiver implements Runnable {
             InetAddress address = InetAddress.getByName(ServerConfig.IP_BROADCAST);
 
             socket.joinGroup(address);
+            System.out.println("Receiver started and joined multicast group.");
 
             while (true) {
 
@@ -33,7 +34,11 @@ public class BroadcastReceiver implements Runnable {
                 System.out.println(response);
             }
         } catch (Exception e) {
-            socket.close();
+            System.err.println("Error occurred in BroadcastReceiver: " + e.getMessage());
+            e.printStackTrace();
+            if (socket != null && !socket.isClosed()) {
+                socket.close();
+            }
 
             e.printStackTrace();
         }

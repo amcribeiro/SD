@@ -36,7 +36,7 @@ public class EmergencyOperationServer {
 
             executorService.scheduleAtFixedRate(() -> {
                 System.out.println("Active users: " + serverState.currentUserCount.get());
-            }, 0, 400, TimeUnit.SECONDS);
+            }, 0, 5, TimeUnit.SECONDS);
 
 
             while (true) {
