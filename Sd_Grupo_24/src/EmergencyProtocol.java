@@ -76,8 +76,37 @@ public class EmergencyProtocol {
             if (command.equalsIgnoreCase(validCommand)) {
                 switch (command) {
                     case "PRIVATE_MESSAGE":
-                        out.println("Private Message Format Is: PRIVATE <message> - <recipient>");
-                        return false;
+                        if (inputParts.length < 3 || !input.contains("-")) {
+                            out.println("Private Message Format: PRIVATE_MESSAGE <message> - <recipient IP>:<port>");
+                            return false;
+                        }
+
+                        String[] parts = input.split(" - ");
+                        String message = parts[0].substring("PRIVATE_MESSAGE ".length()).trim();
+                        String[] recipientDetails = parts[1].trim().split(":");
+
+                        if (recipientDetails.length != 2) {
+                            out.println("Invalid recipient format. Use <IP>:<port>");
+                            return false;
+                        }
+
+                        String recipientIP = recipientDetails[0];
+                        int recipientPort;
+                        try {
+                            recipientPort = Integer.parseInt(recipientDetails[1]);
+                        } catch (NumberFormatException e) {
+                            out.println("Invalid port number.");
+                            return false;
+                        }
+
+                        new Thread(() -> {
+                            DatagramSender sender = new DatagramSender();
+                            sender.sendMessage(message, recipientIP, recipientPort);
+                        }).start();
+
+                        out.println("Private message sent.");
+                        return true;
+
 
                     case "CHAT":
                         String groupAddress = chooseGroupAccordingToLevel();
@@ -109,8 +138,8 @@ public class EmergencyProtocol {
                                 out.println("Broadcast Format is: BROADCAST <message>");
                                 return false;
                             }
-                            String message = String.join(" ", Arrays.copyOfRange(inputParts, 1, inputParts.length));
-                            new Thread(new BroadcastSender(currentUser, message)).start();
+                            String messageToBroadcast = String.join(" ", Arrays.copyOfRange(inputParts, 1, inputParts.length));
+                            new Thread(new BroadcastSender(currentUser, messageToBroadcast)).start();
                             out.println("Broadcast message sent successfully.");
                             return true;
                         }
@@ -215,10 +244,13 @@ public class EmergencyProtocol {
 
             while ((line = reader.readLine()) != null) {
                 String[] items = line.split(",");
-                if (items.length == 3 && items[2].equalsIgnoreCase("PENDING")) {
+                System.out.println(items[0]+ " "+items[1]+ " "+items[2]);
+                if (items.length == 3 && items[2].equalsIgnoreCase("PENDING") && Integer.parseInt(items[0]) <= currentUser.getLevel()) {
                     out.println(count + ". " + line);
                     count++;
                     hasPendingApprovals = true;
+                }else{
+                    out.println();
                 }
             }
 
