@@ -31,7 +31,8 @@ public class EmergencyProtocol {
             "REQUEST",
             "APPROVE",
             "BROADCAST",
-            "MULTICAST"
+            "MULTICAST",
+            "HELP",
     };
 
     private User currentUser;
@@ -44,7 +45,7 @@ public class EmergencyProtocol {
         String output = null;
 
         if (currentState == WAITING){
-            output = "----- Welcome " + currentUser.getName() + " | "+ currentUser.getLevel()+ " -----\n" + "Enter a command!" ;
+            output = "----- Welcome " + currentUser.getName() + " | "+ currentUser.getLevel()+ " -----\n" + "Enter a command!" + "\n type command HELP to get list of commands" ;
             currentState = SENTCOMMAND;
         } else if (currentState == SENTCOMMAND){
             if(isCommandValid(input)){
@@ -116,6 +117,17 @@ public class EmergencyProtocol {
                             mutlicastMessage();
                             return true;
                         }
+                        return false;
+                    case "HELP":
+                        out.println("Commands: ");
+                        out.println("PRIVATE_MESSAGE - Send a private message to a user.");
+                        out.println("CHAT - Start a chat with a group.");
+                        out.println("LIST_MESSAGES - List all messages.");
+                        out.println("REQUEST - Request a multicast message.");
+                        out.println("APPROVE - Approve a request.");
+                        out.println("BROADCAST - Broadcast a message.");
+                        out.println("MULTICAST - Send a multicast message.");
+                        out.println("HELP - Show this help message.");
                         return false;
                     default:
                         break;
