@@ -42,11 +42,22 @@ public class EmergencyProtocol {
     public String processInput(String input) throws IOException {
         String output = null;
 
-        if (currentState == WAITING){
-            output = "----- Welcome " + currentUser.getName() + " | "+ currentUser.getLevel()+ " -----\n" + "Enter a command!" + "\n type command HELP to get list of commands" ;
+        if (currentState == WAITING) {
+            output = "----- Welcome " + currentUser.getName() + " | " + currentUser.getLevel() + " -----\n"
+                    + "Enter a command!" + "\n type command HELP to get list of commands";
             currentState = SENTCOMMAND;
         } else if (currentState == SENTCOMMAND) {
-            if (isCommandValid(input)) {
+            if (input.equalsIgnoreCase("HELP")) {
+                output = "Commands: \n"
+                        + "PRIVATE_MESSAGE - Send a private message to a user.\n"
+                        + "CHAT - Start a chat with a group.\n"
+                        + "LIST_MESSAGES - List all messages.\n"
+                        + "REQUEST - Request a multicast message.\n"
+                        + "APPROVE - Approve a request.\n"
+                        + "BROADCAST - Broadcast a message.\n"
+                        + "MULTICAST - Send a multicast message.\n"
+                        + "HELP - Show this help message.";
+            } else if (isCommandValid(input)) {
                 output = "Executing command: " + input + ". Want to type another command? (y/n)";
                 currentState = ANOTHER;
             } else if (input.equalsIgnoreCase("Logout")) {
@@ -66,6 +77,7 @@ public class EmergencyProtocol {
         }
 
         return output;
+
     }
 
     private boolean isCommandValid(String input) throws IOException {
@@ -123,10 +135,13 @@ public class EmergencyProtocol {
 
                     case "APPROVE":
                         if (currentUser.getLevel() >= 1 && currentUser.getLevel() <= 3) {
-                            if (showPendingApprovalRequests()) {
+                            if (showAndApproveRequestFlow()) {
                                 out.println("Enter the request number to approve:");
                                 int requestNumber = Integer.parseInt(in.readLine());
-                                approveRequest(requestNumber);
+                                boolean approved = showAndApproveRequest(requestNumber);
+                                if (!approved) {
+                                    out.println("Approval failed. Either the request number is invalid or no matching request exists.");
+                                }
                             }
                             return true;
                         }
@@ -201,39 +216,7 @@ public class EmergencyProtocol {
         }
     }
 
-
-    private void approveRequest(int requestNumber) {
-        List<String> lines = new ArrayList<>();
-
-        try (BufferedReader reader = new BufferedReader(new FileReader("requests.csv"))) {
-            String line;
-            int count = 1;
-
-            while ((line = reader.readLine()) != null) {
-                String[] items = line.split(",");
-                if (items.length == 3 && items[2].equalsIgnoreCase("PENDING")) {
-                    if (count == requestNumber) {
-                        items[2] = "APPROVED";
-                    }
-                    count++;
-                }
-                lines.add(String.join(",", items));
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        try (PrintWriter writer = new PrintWriter(new FileWriter("requests.csv"))) {
-            for (String line : lines) {
-                writer.println(line);
-            }
-            out.println("Approved the request.");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private boolean showPendingApprovalRequests() {
+    private boolean showAndApproveRequestFlow() {
         boolean hasPendingApprovals = false;
 
         try (BufferedReader reader = new BufferedReader(new FileReader("requests.csv"))) {
@@ -244,18 +227,17 @@ public class EmergencyProtocol {
 
             while ((line = reader.readLine()) != null) {
                 String[] items = line.split(",");
-                System.out.println(items[0]+ " "+items[1]+ " "+items[2]);
-                if (items.length == 3 && items[2].equalsIgnoreCase("PENDING") && Integer.parseInt(items[0]) <= currentUser.getLevel()) {
+                if (items.length == 3 && items[2].trim().equalsIgnoreCase("PENDING")
+                        && Integer.parseInt(items[0]) <= currentUser.getLevel()) {
+
                     out.println(count + ". " + line);
                     count++;
                     hasPendingApprovals = true;
-                }else{
-                    out.println();
                 }
             }
 
             if (!hasPendingApprovals) {
-                out.println("\n ----- No Requests Left To Approve ----- \n");
+                out.println("\n----- No Requests Left To Approve -----\n");
             }
 
         } catch (IOException e) {
@@ -264,6 +246,61 @@ public class EmergencyProtocol {
 
         return hasPendingApprovals;
     }
+
+    private boolean showAndApproveRequest(int requestNumber) {
+        List<String> lines = new ArrayList<>();
+        boolean approved = false;
+        boolean hasPendingApprovals = false;
+
+        try (BufferedReader reader = new BufferedReader(new FileReader("requests.csv"))) {
+            String line;
+            int count = 1;
+
+            out.println("----- Requests Pending Approval -----");
+
+            while ((line = reader.readLine()) != null) {
+                String[] items = line.split(",");
+                if (items.length == 3 && items[2].trim().equalsIgnoreCase("PENDING")
+                        && Integer.parseInt(items[0]) <= currentUser.getLevel()) {
+
+                    out.println(count + ". " + line);
+                    if (count == requestNumber) {
+                        items[2] = "APPROVED";
+                        approved = true;
+                    }
+                    count++;
+                    hasPendingApprovals = true;
+                }
+                lines.add(String.join(",", items));
+            }
+
+            if (!hasPendingApprovals) {
+                out.println("\n----- No Requests Left To Approve -----\n");
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+
+        try (PrintWriter writer = new PrintWriter(new FileWriter("requests.csv"))) {
+            for (String line : lines) {
+                writer.println(line);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+
+        if (approved) {
+            out.println("Approved request number " + requestNumber + ".");
+        } else {
+            out.println("Invalid request number or no matching pending request.");
+        }
+
+        return approved;
+    }
+
 
     private void getAllMessages() {
         try (BufferedReader reader = new BufferedReader(new FileReader("messages.csv"))) {
