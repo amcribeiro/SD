@@ -24,7 +24,7 @@ public class BroadcastSender implements Runnable{
             socket.joinGroup(address);
 
             while (true) {
-                Thread.sleep(600000); // 10 minutos
+                Thread.sleep(600000);
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
                 String date = formatter.format(LocalDateTime.now());
                 byte[] msg = ("\nAlerta do " + user.getName() + " | " +

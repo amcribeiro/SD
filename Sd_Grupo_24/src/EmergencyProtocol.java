@@ -80,6 +80,7 @@ public class EmergencyProtocol {
 
     }
 
+
     private boolean isCommandValid(String input) throws IOException {
         String[] inputParts = input.split(" ");
         String command = inputParts[0].toUpperCase();
@@ -130,8 +131,8 @@ public class EmergencyProtocol {
                         return true;
 
                     case "REQUEST":
-                        out.println("Request Format Is: REQUEST <message>");
-                        return false;
+                        processEmergencyRequest();
+                        return true;
 
                     case "APPROVE":
                         if (currentUser.getLevel() >= 1 && currentUser.getLevel() <= 3) {
@@ -216,6 +217,71 @@ public class EmergencyProtocol {
         }
     }
 
+    public String processEmergencyRequest() throws IOException {
+        int operationChoice;
+        do {
+            out.println("----- Emergency Operations Menu -----");
+            out.println("1. Operacao de Evacuacao em Massa (Level 2+)");
+            out.println("2. Ativacao de Comunicacoes de Emergencia (Level 1+)");
+            out.println("3. Distribuicao de Recursos de Emergencia (All Levels)");
+            out.println("Enter the number of your choice:");
+
+            operationChoice = Integer.parseInt(in.readLine());
+        } while (!isOperationValidForUserLevel(operationChoice));
+
+        String operationType = "";
+        int requiredLevel = 0;
+        switch (operationChoice) {
+            case 1:
+                operationType = "Operacao de Evacuacao em Massa";
+                requiredLevel = 3;
+                break;
+            case 2:
+                operationType = "Ativacao de Comunicacoes de Emergencia";
+                requiredLevel = 2;
+                break;
+            case 3:
+                operationType = "Distribuicao de Recursos de Emergencia";
+                requiredLevel = 1;
+                break;
+        }
+
+        out.println("Enter the message for the operation:");
+        String operationMessage = in.readLine();
+
+        saveEmergencyRequest(requiredLevel, operationMessage, operationType);
+
+        return "Request saved for: " + operationType;
+    }
+
+    private boolean isOperationValidForUserLevel(int choice) {
+        if (choice == 1 && currentUser.getLevel() < 2) {
+            out.println("You need Level 2 or higher for this operation.");
+            return false;
+        }
+        if (choice == 2 && currentUser.getLevel() < 1) {
+            out.println("You need Level 1 or higher for this operation.");
+            return false;
+        }
+        if (choice == 3) {
+            return true;
+        }
+        else if(choice <1 || choice > 3){
+            out.println("Invalid choice. Please select a valid option.");
+            return false;
+        }
+        return true;
+    }
+
+    private void saveEmergencyRequest(int requiredLevel, String message, String operationType) {
+        try (PrintWriter writer = new PrintWriter(new FileWriter("requests.csv", true))) {
+            writer.println(String.format("%d,%s,%s,PENDING", requiredLevel, operationType, message));
+            out.println("Emergency request saved successfully.");
+        } catch (IOException e) {
+            out.println("Error saving request: " + e.getMessage());
+        }
+    }
+
     private boolean showAndApproveRequestFlow() {
         boolean hasPendingApprovals = false;
 
@@ -227,7 +293,7 @@ public class EmergencyProtocol {
 
             while ((line = reader.readLine()) != null) {
                 String[] items = line.split(",");
-                if (items.length == 3 && items[2].trim().equalsIgnoreCase("PENDING")
+                if (items.length == 4 && items[3].trim().equalsIgnoreCase("PENDING")
                         && Integer.parseInt(items[0]) <= currentUser.getLevel()) {
 
                     out.println(count + ". " + line);
@@ -260,13 +326,14 @@ public class EmergencyProtocol {
 
             while ((line = reader.readLine()) != null) {
                 String[] items = line.split(",");
-                if (items.length == 3 && items[2].trim().equalsIgnoreCase("PENDING")
+                if (items.length == 4 && items[3].trim().equalsIgnoreCase("PENDING")
                         && Integer.parseInt(items[0]) <= currentUser.getLevel()) {
 
                     out.println(count + ". " + line);
                     if (count == requestNumber) {
-                        items[2] = "APPROVED";
+                        items[3] = "APPROVED";
                         approved = true;
+                        EmergencyOperationServer.updateApprovedRequestCount(1);
                     }
                     count++;
                     hasPendingApprovals = true;

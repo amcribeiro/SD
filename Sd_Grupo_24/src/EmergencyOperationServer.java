@@ -15,7 +15,10 @@ public class EmergencyOperationServer {
     private static class EmergencyOperationServerUserCountState {
         //AtomicInteger usado em vez de int para garantir que é thread safe
         AtomicInteger currentUserCount = new AtomicInteger(0);
+        AtomicInteger approvedRequestCount = new AtomicInteger(0);
     }
+
+    private static EmergencyOperationServerUserCountState serverState = new EmergencyOperationServerUserCountState();
 
     public static void main(String[] args) {
         if (args.length != 1) {
@@ -26,7 +29,6 @@ public class EmergencyOperationServer {
         int portNumber = Integer.parseInt(args[0]);
 
         LocalDatabase database = new LocalDatabase();
-        EmergencyOperationServerUserCountState serverState = new EmergencyOperationServerUserCountState();
 
         try (ServerSocket serverSocket = new ServerSocket(portNumber);
              Scanner scanner = new Scanner(System.in)) {
@@ -35,7 +37,8 @@ public class EmergencyOperationServer {
             ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
 
             executorService.scheduleAtFixedRate(() -> {
-                System.out.println("Active users: " + serverState.currentUserCount.get());
+                System.out.println("Active users: " + serverState.currentUserCount.get() +
+                        ", Approved requests: " + serverState.approvedRequestCount.get());
             }, 0, 5, TimeUnit.SECONDS);
 
 
@@ -70,5 +73,9 @@ public class EmergencyOperationServer {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static void updateApprovedRequestCount(int increment) {
+        serverState.approvedRequestCount.addAndGet(increment);
     }
 }

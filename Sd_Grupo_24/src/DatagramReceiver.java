@@ -15,7 +15,7 @@ public class DatagramReceiver implements Runnable {
             System.out.println("Receiver listening on port: " + port);
 
             while (true) {
-                byte[] buffer = new byte[1024]; // Adjust the buffer size if needed
+                byte[] buffer = new byte[1024];
                 DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
                 socket.receive(packet);
 
