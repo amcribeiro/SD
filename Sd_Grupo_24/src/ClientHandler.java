@@ -54,10 +54,60 @@ class ClientHandler extends Thread {
             case "SEND":
                 handleSendMessage(parts);
                 break;
+            case "VIEW_MESSAGES":
+                handleViewMessages();
+                break;
             default:
                 writer.println("ERROR:Invalid command");
         }
     }
+
+    private void handleViewMessages() {
+        if (currentUser == null) {
+            writer.println("ERROR:You must be logged in to view messages");
+            return;
+        }
+
+        String fileName = "src/pending_messages.csv";
+        String tempFileName = "src/temp_pending_messages.csv";
+        File originalFile = new File(fileName);
+        File tempFile = new File(tempFileName);
+
+        try (BufferedReader br = new BufferedReader(new FileReader(originalFile));
+             PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(tempFile)))) {
+            String line;
+            boolean hasMessages = false;
+
+            while ((line = br.readLine()) != null) {
+                String[] parts = line.split(",", 4);
+                if (parts.length == 4 && parts[1].equals(currentUser.getUsername())) {
+                    writer.println("From " + parts[0] + ": " + parts[2]);
+                    hasMessages = true;
+                } else {
+                    pw.println(line);
+                }
+            }
+
+            if (!hasMessages) {
+                writer.println("Nenhuma mensagem recebida.");
+            }
+            writer.println("END_OF_MESSAGES");
+
+        } catch (IOException e) {
+            writer.println("ERROR:Could not retrieve messages");
+            e.printStackTrace();
+        }
+
+        // Replace the original file with the temp file
+        if (originalFile.delete()) {
+            if (!tempFile.renameTo(originalFile)) {
+                writer.println("ERROR:Could not replace the original file");
+            }
+        } else {
+            writer.println("ERROR:Could not delete the original file");
+        }
+    }
+
 
     private void handleRegister(String[] parts) {
         if (parts.length != 4) {
@@ -128,6 +178,8 @@ class ClientHandler extends Thread {
             writer.println("ERROR:Could not save the message");
         }
     }
+
+
 
 
     public void sendMessage(String message) {

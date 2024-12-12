@@ -74,7 +74,8 @@ public class Client {
             System.out.println("\n--- MENU PRINCIPAL ---");
             System.out.println("1. Enviar Mensagem");
             System.out.println("2. Enviar Alerta");
-            System.out.println("3. Logout");
+            System.out.println("3. Ver Mensagens Recebidas");
+            System.out.println("4. Logout");
             System.out.print("Escolha uma opção: ");
             int choice = scanner.nextInt();
             scanner.nextLine(); // Limpa o buffer
@@ -87,6 +88,9 @@ public class Client {
                     handleSendAlert(scanner);
                     break;
                 case 3:
+                    handleViewReceivedMessages();
+                    break;
+                case 4:
                     System.out.println("A fazer logout...");
                     isLoggedIn = false;
                     currentUser = null;
@@ -151,7 +155,6 @@ public class Client {
         }
     }
 
-
     private void handleSendMessage(Scanner scanner) {
         System.out.print("Introduza o destinatário: ");
         String recipient = scanner.nextLine();
@@ -168,6 +171,19 @@ public class Client {
             }
         } catch (IOException e) {
             System.out.println("Erro ao enviar a mensagem: " + e.getMessage());
+        }
+    }
+
+    private void handleViewReceivedMessages() {
+        writer.println("VIEW_MESSAGES");
+        try {
+            System.out.println("\n--- Mensagens Recebidas ---");
+            String line;
+            while (!(line = reader.readLine()).equals("END_OF_MESSAGES")) {
+                System.out.println(line);
+            }
+        } catch (IOException e) {
+            System.out.println("Erro ao obter mensagens recebidas: " + e.getMessage());
         }
     }
 
