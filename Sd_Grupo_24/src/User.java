@@ -1,42 +1,34 @@
-import java.util.Objects;
+import java.net.Socket;
 
 public class User {
-
-    private String name;
-    private String email;
+    private int id;
+    private String username;
     private String password;
-    private int level;
+    private String level;
+    private Socket socket;
 
-
-    public User(String name, String email, String password, int level) {
-        this.name = name;
-        this.email = email;
+    public User(int id, String username, String password, String level) {
+        this.id = id;
+        this.username = username;
         this.password = password;
         this.level = level;
-
     }
 
-    public User(String... userFields) {
-        this.name = userFields[0];
-        this.email = userFields[1];
-        this.password = userFields[2];
-        this.level = Integer.parseInt(userFields[3]);
+    // Getters e Setters
+    public int getId() {
+        return id;
     }
 
-    public String getName() {
-        return name;
+    public void setId(int id) {
+        this.id = id;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public String getUsername() {
+        return username;
     }
 
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getPassword() {
@@ -47,53 +39,24 @@ public class User {
         this.password = password;
     }
 
-    public int getLevel() {
+    public String getLevel() {
         return level;
     }
 
-    public void setLevel(int level) {
+    public void setLevel(String level) {
         this.level = level;
     }
 
-    @Override
-    public int hashCode() {
-        int hash = 3;
-        return hash;
+    public Socket getSocket() {
+        return socket;
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final User other = (User) obj;
-
-        if (!Objects.equals(this.name, other.name)) {
-            return false;
-        }
-        if (!Objects.equals(this.email, other.email)) {
-            return false;
-        }
-        if (!Objects.equals(this.password, other.password)) {
-            return false;
-        }
-        return Objects.equals(this.level, other.level);
+    public void setSocket(Socket socket) {
+        this.socket = socket;
     }
 
     @Override
     public String toString() {
-        return "User{\n Name = " + name + "\n Email = " + email + "\n Password = " + password + "\n Level = "
-                + level + " \n}";
+        return id + "," + username + "," + password + "," + level;
     }
-
-    public String toCSV() {
-        return String.join(";", name, email, password, String.valueOf(level));
-    }
-
 }
