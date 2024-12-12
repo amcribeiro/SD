@@ -129,6 +129,8 @@ public class Client {
                 System.out.println("Login bem-sucedido!");
                 isLoggedIn = true;
                 currentUser = username;
+
+                new Thread(this::listenForMessages).start();
             } else {
                 System.out.println("Erro: " + response);
             }
@@ -136,6 +138,19 @@ public class Client {
             e.printStackTrace();
         }
     }
+
+    private void listenForMessages() {
+        try {
+            String message;
+            while ((message = reader.readLine()) != null) {
+                System.out.println("\n[Servidor]: " + message);
+
+            }
+        } catch (IOException e) {
+            System.out.println("Conexão com o servidor perdida.");
+        }
+    }
+
 
     private void handleSendMessage(Scanner scanner) {
         System.out.print("Introduza o destinatário: ");
