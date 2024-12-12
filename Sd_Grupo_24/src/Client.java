@@ -75,7 +75,8 @@ public class Client {
             System.out.println("1. Enviar Mensagem");
             System.out.println("2. Enviar Alerta");
             System.out.println("3. Ver Mensagens Recebidas");
-            System.out.println("4. Logout");
+            System.out.println("4. Enviar Pedido de Emergência");
+            System.out.println("6. Logout");
             System.out.print("Escolha uma opção: ");
             int choice = scanner.nextInt();
             scanner.nextLine(); // Limpa o buffer
@@ -91,6 +92,9 @@ public class Client {
                     handleViewReceivedMessages();
                     break;
                 case 4:
+                    handleSendEmergencyRequest(scanner);
+                    break;
+                case 6:
                     System.out.println("A fazer logout...");
                     isLoggedIn = false;
                     currentUser = null;
@@ -102,6 +106,7 @@ public class Client {
             }
         }
     }
+
 
     private void handleRegister(Scanner scanner) {
         System.out.print("Introduza o username: ");
@@ -200,4 +205,42 @@ public class Client {
             e.printStackTrace();
         }
     }
+
+    private void handleSendEmergencyRequest(Scanner scanner) {
+        System.out.println("----- Menu de Operações de Emergência -----");
+        System.out.println("1. Operação de Evacuação em Massa (Nível 3+)");
+        System.out.println("2. Ativação de Comunicações de Emergência (Nível 2+)");
+        System.out.println("3. Distribuição de Recursos de Emergência (Todos os níveis)");
+        System.out.print("Escolha a operação: ");
+        int choice = scanner.nextInt();
+        scanner.nextLine();
+
+        String operationType = "";
+        switch (choice) {
+            case 1:
+                operationType = "Operacao de Evacuacao em Massa";
+                break;
+            case 2:
+                operationType = "Ativacao de Comunicacoes de Emergencia";
+                break;
+            case 3:
+                operationType = "Distribuicao de Recursos de Emergencia";
+                break;
+            default:
+                System.out.println("Opção inválida!");
+                return;
+        }
+
+        System.out.print("Digite a mensagem para a operação: ");
+        String message = scanner.nextLine();
+
+        writer.println("SEND_EMERGENCY_REQUEST:" + operationType + ":" + message);
+        try {
+            String response = reader.readLine();
+            System.out.println("Servidor: " + response);
+        } catch (IOException e) {
+            System.out.println("Erro ao enviar o pedido de emergência: " + e.getMessage());
+        }
+    }
+
 }

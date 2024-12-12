@@ -25,7 +25,7 @@ public class UserManager {
                         Integer.parseInt(parts[0]),
                         parts[1],
                         parts[2],
-                        parts[3]
+                        Integer.parseInt(parts[3])
                 );
                 users.add(user);
             }

@@ -30,17 +30,14 @@ public class Server {
         }
     }
 
-    // Register a user as online
     public synchronized void registerUser(String username, ClientHandler handler) {
         onlineUsers.put(username, handler);
     }
 
-    // Unregister a user
     public synchronized void unregisterUser(String username) {
         onlineUsers.remove(username);
     }
 
-    // Check if a user is online
     public synchronized ClientHandler getOnlineUser(String username) {
         return onlineUsers.get(username);
     }
