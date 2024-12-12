@@ -110,9 +110,25 @@ class ClientHandler extends Thread {
             recipientHandler.sendMessage("MESSAGE from " + currentUser.getUsername() + ": " + content);
             writer.println("SUCCESS:Message sent to " + recipient);
         } else {
-            writer.println("ERROR:User " + recipient + " is not online");
+            // Destinatário não está online, salvar mensagem no CSV
+            saveMessageToCsv(currentUser.getUsername(), recipient, content);
+            writer.println("SUCCESS:User not online, message saved for later delivery");
         }
     }
+
+    private void saveMessageToCsv(String sender, String recipient, String message) {
+        String fileName = "src/pending_messages.csv";
+        try (FileWriter fw = new FileWriter(fileName, true);
+             BufferedWriter bw = new BufferedWriter(fw);
+             PrintWriter pw = new PrintWriter(bw)) {
+            String timestamp = new Date().toString();
+            pw.println(sender + "," + recipient + "," + message + "," + timestamp);
+        } catch (IOException e) {
+            e.printStackTrace();
+            writer.println("ERROR:Could not save the message");
+        }
+    }
+
 
     public void sendMessage(String message) {
         writer.println(message);
