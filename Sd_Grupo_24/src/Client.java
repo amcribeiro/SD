@@ -160,12 +160,17 @@ public class Client {
 
         writer.println("SEND:" + recipient + ":" + message);
         try {
-            String response = reader.readLine();
-            System.out.println("Servidor: " + response);
+            if (reader.ready()) {
+                String response = reader.readLine();
+                System.out.println("Servidor: " + response);
+            } else {
+                System.out.println("Mensagem enviada com sucesso.");
+            }
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Erro ao enviar a mensagem: " + e.getMessage());
         }
     }
+
 
     private void handleSendAlert(Scanner scanner) {
         System.out.print("Introduza o alerta: ");
