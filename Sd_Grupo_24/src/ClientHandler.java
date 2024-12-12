@@ -1,9 +1,6 @@
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.Socket;
-import java.util.Arrays;
+import java.io.*;
+import java.net.*;
+import java.util.*;
 
 class ClientHandler extends Thread {
     private Socket socket;
@@ -23,7 +20,7 @@ class ClientHandler extends Thread {
             reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             writer = new PrintWriter(socket.getOutputStream(), true);
 
-            // Processar mensagens do cliente
+            // Process messages from the client
             String message;
             while ((message = reader.readLine()) != null) {
                 processMessage(message);
@@ -31,6 +28,10 @@ class ClientHandler extends Thread {
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
+            if (currentUser != null) {
+                server.unregisterUser(currentUser.getUsername());
+                System.out.println("Usuário " + currentUser.getUsername() + " desconectado.");
+            }
             try {
                 socket.close();
             } catch (IOException e) {
@@ -49,9 +50,6 @@ class ClientHandler extends Thread {
                 break;
             case "LOGIN":
                 handleLogin(parts);
-                break;
-            case "CREATE_CHANNEL":
-                handleCreateChannel(parts);
                 break;
             case "SEND":
                 handleSendMessage(parts);
@@ -82,7 +80,7 @@ class ClientHandler extends Thread {
     }
 
     private void handleLogin(String[] parts) {
-        if (parts.length != 3) { // Espera username e password
+        if (parts.length != 3) {
             writer.println("ERROR:Invalid format");
             return;
         }
@@ -92,23 +90,10 @@ class ClientHandler extends Thread {
         User user = UserManager.authenticate(username, password);
         if (user != null) {
             currentUser = user;
+            server.registerUser(username, this); // Register user as online
             writer.println("SUCCESS:Login successful");
         } else {
             writer.println("ERROR:Invalid credentials");
-        }
-    }
-
-
-    private void handleCreateChannel(String[] parts) {
-        if (parts.length != 2) {
-            writer.println("ERROR:Invalid format");
-            return;
-        }
-        String channelName = parts[1];
-        if (server.createChannel(channelName)) {
-            writer.println("SUCCESS:Channel created");
-        } else {
-            writer.println("ERROR:Channel already exists");
         }
     }
 
@@ -119,9 +104,17 @@ class ClientHandler extends Thread {
         }
         String recipient = parts[1];
         String content = String.join(":", Arrays.copyOfRange(parts, 2, parts.length));
-        // Implementação para enviar mensagem (exemplo simplificado)
-        System.out.println("Mensagem para " + recipient + ": " + content);
-        writer.println("SUCCESS:Message sent");
+
+        ClientHandler recipientHandler = server.getOnlineUser(recipient);
+        if (recipientHandler != null) {
+            recipientHandler.sendMessage("MESSAGE from " + currentUser.getUsername() + ": " + content);
+            writer.println("SUCCESS:Message sent to " + recipient);
+        } else {
+            writer.println("ERROR:User " + recipient + " is not online");
+        }
+    }
+
+    public void sendMessage(String message) {
+        writer.println(message);
     }
 }
-

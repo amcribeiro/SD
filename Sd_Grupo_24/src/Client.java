@@ -22,6 +22,7 @@ public class Client {
             reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
             System.out.println("Conectado ao servidor.");
+
             showInitialMenu();
 
         } catch (IOException e) {
@@ -45,7 +46,7 @@ public class Client {
             System.out.println("3. Sair");
             System.out.print("Escolha uma opção: ");
             int choice = scanner.nextInt();
-            scanner.nextLine(); // Limpa o buffer
+            scanner.nextLine();
 
             switch (choice) {
                 case 1:

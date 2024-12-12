@@ -30,22 +30,18 @@ public class Server {
         }
     }
 
-    // Método para criar canais
-    public synchronized boolean createChannel(String channelName) {
-        if (channels.containsKey(channelName)) {
-            return false; // Canal já existe
-        }
-        channels.put(channelName, new Channel(channelName));
-        return true;
+    // Register a user as online
+    public synchronized void registerUser(String username, ClientHandler handler) {
+        onlineUsers.put(username, handler);
     }
 
-    // Método para obter um canal
-    public synchronized Channel getChannel(String channelName) {
-        return channels.get(channelName);
+    // Unregister a user
+    public synchronized void unregisterUser(String username) {
+        onlineUsers.remove(username);
     }
 
-    public Map<String, ClientHandler> getOnlineUsers() {
-        return onlineUsers;
+    // Check if a user is online
+    public synchronized ClientHandler getOnlineUser(String username) {
+        return onlineUsers.get(username);
     }
 }
-
