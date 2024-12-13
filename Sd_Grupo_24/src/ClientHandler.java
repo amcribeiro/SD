@@ -56,6 +56,13 @@ class ClientHandler extends Thread {
             case "VIEW_MESSAGES":
                 handleViewMessages();
                 break;
+            case "ALERT":
+                if (parts.length == 2) {
+                    handleAlert(parts[1]);
+                } else {
+                    writer.println("ERROR:Invalid format for ALERT");
+                }
+                break;
             case "SEND_EMERGENCY_REQUEST":
                 if (parts.length == 3) {
                     handleEmergencyRequest(parts[1], parts[2]);
@@ -160,7 +167,6 @@ class ClientHandler extends Thread {
             e.printStackTrace();
         }
 
-        // Replace the original file with the temp file
         if (originalFile.delete()) {
             if (!tempFile.renameTo(originalFile)) {
                 writer.println("ERROR:Could not replace the original file");
@@ -170,7 +176,10 @@ class ClientHandler extends Thread {
         }
     }
 
-
+    private void handleAlert(String alertMessage) {
+        server.broadcastAlert(alertMessage, currentUser.getUsername());
+        writer.println("SUCCESS:Alert sent to all online users");
+    }
 
     private void handleEmergencyRequest(String operationType, String message) {
         int requiredLevel = getRequiredLevelForOperation(operationType);

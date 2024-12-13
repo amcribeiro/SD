@@ -152,13 +152,17 @@ public class Client {
         try {
             String message;
             while ((message = reader.readLine()) != null) {
-                System.out.println("\n[Servidor]: " + message);
-
+                if (message.startsWith("ALERT")) {
+                    System.out.println("\n[ALERT]: " + message.substring(6));
+                } else {
+                    System.out.println("\n[Servidor]: " + message);
+                }
             }
         } catch (IOException e) {
             System.out.println("Conexão com o servidor perdida.");
         }
     }
+
 
     private void handleSendMessage(Scanner scanner) {
         System.out.print("Introduza o destinatário: ");

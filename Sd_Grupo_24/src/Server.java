@@ -41,4 +41,15 @@ public class Server {
     public synchronized ClientHandler getOnlineUser(String username) {
         return onlineUsers.get(username);
     }
+
+    public void broadcastAlert(String alertMessage, String senderUsername) {
+        String fullMessage = "ALERT from " + senderUsername + ": " + alertMessage;
+
+        for (ClientHandler handler : onlineUsers.values()) {
+            handler.sendMessage(fullMessage);
+        }
+
+        System.out.println("Alert broadcasted: " + fullMessage);
+    }
+
 }
